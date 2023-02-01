@@ -1,0 +1,224 @@
+
+// Simple test of USB Host
+//
+// This example is in the public domain
+
+#include "USBHost_t36.h"
+#include <FastLED.h>
+#define NUM_LEDS 144
+#define DATA_PIN 11
+#define CLOCK_PIN 13
+CRGB leds[NUM_LEDS];
+USBHost myusb;
+MIDIDevice midi1(myusb);
+
+
+//Designate the rows of the array. First color scheme is [0][0-99], 2nd is [1][0-99].
+uint32_t colors[7][73]={{##27,##28,##29,##30,##31,##32,##33,##34,##35,##36,##37,##38,##39,##40,##41,##42,##43,##44,##45,##46,##47,##48,##49,##50,##51,##52,##53,##54,##55,##56,##57,##58,##59,##60,##61,##62,##63,##64,##65,##66,##67,##68,##69,##70,##71,##72,##73,##74,##75,##76,##77,##78,##79,##80,##81,##82,##83,##84,##85,##86,##87,##88,##89,##90,##91,##92,##93,##94,##95,##96,##97,##98,##99},
+{2##27,2##28,2##29,2##30,2##31,2##32,2##33,2##34,2##35,2##36,2##37,2##38,2##39,2##40,2##41,2##42,2##43,2##44,2##45,2##46,2##47,2##48,2##49,2##50,2##51,2##52,2##53,2##54,2##55,2##56,2##57,2##58,2##59,2##60,2##61,2##62,2##63,2##64,2##65,2##66,2##67,2##68,2##69,2##70,2##71,2##72,2##73,2##74,2##75,2##76,2##77,2##78,2##79,2##80,2##81,2##82,2##83,2##84,2##85,2##86,2##87,2##88,2##89,2##90,2##91,2##92,2##93,2##94,2##95,2##96,2##97,2##98,2##99},
+{3##27,3##28,3##29,3##30,3##31,3##32,3##33,3##34,3##35,3##36,3##37,3##38,3##39,3##40,3##41,3##42,3##43,3##44,3##45,3##46,3##47,3##48,3##49,3##50,3##51,3##52,3##53,3##54,3##55,3##56,3##57,3##58,3##59,3##60,3##61,3##62,3##63,3##64,3##65,3##66,3##67,3##68,3##69,3##70,3##71,3##72,3##73,3##74,3##75,3##76,3##77,3##78,3##79,3##80,3##81,3##82,3##83,3##84,3##85,3##86,3##87,3##88,3##89,3##90,3##91,3##92,3##93,3##94,3##95,3##96,3##97,3##98,3##99},
+{4##27,4##28,4##29,4##30,4##31,4##32,4##33,4##34,4##35,4##36,4##37,4##38,4##39,4##40,4##41,4##42,4##43,4##44,4##45,4##46,4##47,4##48,4##49,4##50,4##51,4##52,4##53,4##54,4##55,4##56,4##57,4##58,4##59,4##60,4##61,4##62,4##63,4##64,4##65,4##66,4##67,4##68,4##69,4##70,4##71,4##72,4##73,4##74,4##75,4##76,4##77,4##78,4##79,4##80,4##81,4##82,4##83,4##84,4##85,4##86,4##87,4##88,4##89,4##90,4##91,4##92,4##93,4##94,4##95,4##96,4##97,4##98,4##99},
+{5##27,5##28,5##29,5##30,5##31,5##32,5##33,5##34,5##35,5##36,5##37,5##38,5##39,5##40,5##41,5##42,5##43,5##44,5##45,5##46,5##47,5##48,5##49,5##50,5##51,5##52,5##53,5##54,5##55,5##56,5##57,5##58,5##59,5##60,5##61,5##62,5##63,5##64,5##65,5##66,5##67,5##68,5##69,5##70,5##71,5##72,5##73,5##74,5##75,5##76,5##77,5##78,5##79,5##80,5##81,5##82,5##83,5##84,5##85,5##86,5##87,5##88,5##89,5##90,5##91,5##92,5##93,5##94,5##95,5##96,5##97,5##98,5##99},
+{6##27,6##28,6##29,6##30,6##31,6##32,6##33,6##34,6##35,6##36,6##37,6##38,6##39,6##40,6##41,6##42,6##43,6##44,6##45,6##46,6##47,6##48,6##49,6##50,6##51,6##52,6##53,6##54,6##55,6##56,6##57,6##58,6##59,6##60,6##61,6##62,6##63,6##64,6##65,6##66,6##67,6##68,6##69,6##70,6##71,6##72,6##73,6##74,6##75,6##76,6##77,6##78,6##79,6##80,6##81,6##82,6##83,6##84,6##85,6##86,6##87,6##88,6##89,6##90,6##91,6##92,6##93,6##94,6##95,6##96,6##97,6##98,6##99},
+{7##27,7##28,7##29,7##30,7##31,7##32,7##33,7##34,7##35,7##36,7##37,7##38,7##39,7##40,7##41,7##42,7##43,7##44,7##45,7##46,7##47,7##48,7##49,7##50,7##51,7##52,7##53,7##54,7##55,7##56,7##57,7##58,7##59,7##60,7##61,7##62,7##63,7##64,7##65,7##66,7##67,7##68,7##69,7##70,7##71,7##72,7##73,7##74,7##75,7##76,7##77,7##78,7##79,7##80,7##81,7##82,7##83,7##84,7##85,7##86,7##87,7##88,7##89,7##90,7##91,7##92,7##93,7##94,7##95,7##96,7##97,7##98,7##99}};
+
+
+
+	int flag1 = 0;
+	int flag2 = 0;
+	int flag3 = 0;
+int schemaSelector = 0;
+int playingRow = 0;
+int selectorbin= 0;
+
+bool lightsOn = true;
+int flag = 0;
+
+void setup()
+{
+  //while (!Serial) ; // wait for Arduino Serial Monitor
+  FastLED.addLeds<APA102, DATA_PIN, CLOCK_PIN, BGR>(leds, NUM_LEDS);
+  FastLED.setBrightness(255);
+	pinMode(LED_BUILTIN, OUTPUT);
+  digitalWrite(LED_BUILTIN, HIGH);   // set the LED on
+  Serial.println("USB Host Testing");
+  myusb.begin();
+  midi1.setHandleNoteOff(OnNoteOff);
+  midi1.setHandleNoteOn(OnNoteOn);
+}
+
+
+void loop()
+{
+  myusb.Task();
+  midi1.read();
+}
+
+
+void OnNoteOn(byte channel, byte note, byte velocity)
+{
+  Serial.print("Note On, ch=");
+  Serial.print(channel);
+  Serial.print(", note=");
+  Serial.print(note);
+  Serial.print(", velocity=");
+  Serial.print(velocity);
+  Serial.println();
+  if(lightsOn|| note==106|| note==107|| note==108)
+  {
+  lookup(note);
+	}
+}
+
+void OnNoteOff(byte channel, byte note, byte velocity)
+{
+  Serial.print("Note Off, ch=");
+  Serial.print(channel);
+  Serial.print(", note=");
+  Serial.print(note);
+  Serial.println();
+
+  killthelights(note);
+
+}
+
+void lookup(int keyNumber)
+{ //Lowest key with a designated light#:25
+  //Highest key with a designated light#:104
+  //median key#: 65
+  //Lowest key on keyboard: 21
+  //Highest key on keyboard: 108
+
+
+
+	//if it has a light, turn on the light
+	if(keyNumber>27&&keyNumber<106)
+	{
+	leds[144- ((keyNumber-27)*2)] = colors[playingRow][keyNumber-27];
+	leds[144- ((keyNumber-27)*2)+1] = colors[playingRow][keyNumber-27];
+	FastLED.show();
+	}
+	//Here's our selector. To get four keymappings I'll do binary
+	
+	// selector description: the keys, when pressed, add to selectorbin. pressing selector sets it to that. when the key comes off, selectorbin is reduced by what it was
+	//to toggle, insert the following into each if(/#/#keynumber) for the decider keys.	
+		
+
+	//a0, 21, is 1, b0, note#23, is 2, c1,note#24, is 3.  A Sharp, note#22, is the confirmation.
+
+	if(keyNumber==22)
+	{
+		playingRow=flag1+flag2+flag3;
+	Serial.print("STATUS DISP: "); 
+	Serial.print(flag1);
+	Serial.print(flag2);
+	Serial.print(flag3);
+	Serial.print(playingRow);
+	flag1 = 0;
+	flag2 = 0;
+	flag3 = 0;
+	}	
+	if(keyNumber==21)
+	{
+		if(flag1==1)
+		{
+		flag1 = 0;
+		
+		Serial.print("flag1 is: "+flag1);
+		}
+		else
+		{
+		flag1 = 1;
+		Serial.print("flag1 is: "+flag1);
+		}	
+	}
+	else if(keyNumber==23)
+	{
+		if(flag2==2)
+		{
+		flag2 = 0;
+		
+		Serial.print("flag2 is: "+flag2);
+		}
+		else
+		{
+		flag2 = 2;
+		Serial.print("flag2 is: "+flag2);
+		}	
+	}
+	else if(keyNumber==24)
+	{
+		if(flag3==3)
+		{
+		flag3 = 0;
+		
+		Serial.print("flag3 is: "+flag3);
+		}
+		else
+		{
+		flag3 = 3;
+		Serial.print("flag3 is: "+flag3);
+		}	
+	}
+            
+	
+	//ACTIVATOR, turns us on or off.           
+         if(keyNumber==106)
+          {
+            Serial.print("FLAG= "+flag);
+          if(flag !=0)
+            {
+             flag = 0;
+            }
+          }
+              else if(keyNumber==107)
+          {
+		Serial.print("FLAG= "+flag);
+              if(flag==0)
+              {
+                flag=1;
+              }
+            
+          }
+              else if(keyNumber==108)
+          {
+           if(flag==1)
+           { 
+            Serial.print("LIGHTSTATTUS= ");
+            if(flag=1)
+            if(lightsOn)
+            {
+              Serial.print("off");
+              lightsOn = false;
+            }
+            else
+            {
+            Serial.print("ON");
+              lightsOn = true;
+              return;
+            }
+            Serial.println();
+            return;
+           }
+	}
+   
+}
+
+
+void killthelights(int keyNumber)
+{ //Lowest key#:25
+  //Highest key#:104
+  //median key#: 65
+  
+  //Lowest key: 21
+  //Highest: 108
+
+  uint32_t color = 0;
+  if(keyNumber>27&&keyNumber<106)
+	{
+	leds[144- ((keyNumber-27)*2)] = color;
+	leds[144- ((keyNumber-27)*2)+1] = color;
+	FastLED.show();
+	}
+}
+
